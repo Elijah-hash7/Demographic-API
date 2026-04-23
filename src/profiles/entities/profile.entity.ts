@@ -3,15 +3,15 @@ import { Entity, PrimaryColumn, Column, CreateDateColumn, Index } from "typeorm"
 
 @Entity('profiles')
 export class Profile {
-    @PrimaryColumn('text')
+    @PrimaryColumn({ type: 'uuid' })
     id: string;
 
-    @Column({type: 'text', unique: true})
+    @Column({ type: 'varchar', unique: true })
     name: string;
 
 
     @Index()
-    @Column({type: 'text'})
+    @Column({ type: 'varchar' })
     gender: string;
 
 
@@ -25,21 +25,21 @@ export class Profile {
 
 
     @Index()
-    @Column({type: 'text'})
+    @Column({ type: 'varchar' })
     age_group: string;
 
 
     @Index()
-    @Column({type: 'text'})
+    @Column({ type: 'varchar', length: 2 })
     country_id: string;
 
-    @Column({type: 'text'})
+    @Column({ type: 'varchar' })
     country_name: string;
 
     @Column({type: 'real'})
     country_probability: number;
 
-    @CreateDateColumn({type: 'datetime'})
+    @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;
 
 

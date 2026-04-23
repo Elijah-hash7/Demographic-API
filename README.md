@@ -6,7 +6,7 @@ A NestJS REST API that serves demographic profile data with advanced filtering, 
 
 - **Runtime**: Node.js + TypeScript
 - **Framework**: NestJS
-- **Database**: SQLite (via TypeORM + better-sqlite3)
+- **Database**: PostgreSQL (via TypeORM)
 - **Validation**: class-validator + class-transformer
 - **IDs**: UUID v7 (time-sortable, globally unique)
 

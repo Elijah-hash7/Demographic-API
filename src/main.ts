@@ -1,5 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import * as dns from 'dns';
+
+dns.setDefaultResultOrder('ipv4first');
 import { AppModule } from './app.module';
 import { HttpErrorFilter } from './filters/http-error.filter';
 

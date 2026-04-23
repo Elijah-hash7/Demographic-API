@@ -3,11 +3,17 @@ import { Profile } from '../profiles/entities/profile.entity';
 import { v7 as uuidv7 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as dotenv from 'dotenv';
+import * as dns from 'dns';
+
+dns.setDefaultResultOrder('ipv4first');
+dotenv.config();
 
 async function seed() {
   const dataSource = new DataSource({
-    type: 'better-sqlite3',
-    database: 'insighta.db',
+    type: 'postgres',
+    url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/insighta',
+    ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false },
     entities: [Profile],
     synchronize: true,
   });
@@ -22,40 +28,20 @@ async function seed() {
   console.log(`Found ${profiles.length} profiles to seed`);
 
   const repo = dataSource.getRepository(Profile);
-  let inserted = 0;
-  let updated = 0;
+  
+  // Assign UUIDs to new records in memory
+  const profilesToUpsert = profiles.map(p => ({
+    id: uuidv7(),
+    ...p
+  }));
 
-  for (const p of profiles) {
-    const existing = await repo.findOne({ where: { name: p.name } });
+  // Bulk upsert is 1000x faster for cloud databases than sequential findOne -> save
+  await repo.upsert(profilesToUpsert, {
+    conflictPaths: ['name'],
+    skipUpdateIfNoValuesChanged: true,
+  });
 
-    if (existing) {
-      await repo.update({ name: p.name }, {
-        gender: p.gender,
-        gender_probability: p.gender_probability,
-        age: p.age,
-        age_group: p.age_group,
-        country_id: p.country_id,
-        country_name: p.country_name,
-        country_probability: p.country_probability,
-      });
-      updated++;
-    } else {
-      await repo.save({
-        id: uuidv7(),
-        name: p.name,
-        gender: p.gender,
-        gender_probability: p.gender_probability,
-        age: p.age,
-        age_group: p.age_group,
-        country_id: p.country_id,
-        country_name: p.country_name,
-        country_probability: p.country_probability,
-      });
-      inserted++;
-    }
-  }
-
-  console.log(`Seed complete: ${inserted} inserted, ${updated} updated`);
+  console.log(`✅ Seed complete: Pushed ${profiles.length} profiles to Supabase`);
   await dataSource.destroy();
 }
 
